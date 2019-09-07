@@ -13,5 +13,13 @@ int main(int argc, char **argv)
     } else {
         fprintf(stderr, "unrecognized option: %s\n", argv[1]);
     }
+    
+    int sum=0;
+    for (size_t i = 0; i < 5; i++)
+    {
+        sum+= i;
+    }
     return 0;
+
 }
+
