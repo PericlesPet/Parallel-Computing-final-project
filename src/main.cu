@@ -1,9 +1,11 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+
 #include "test.h"
 #include "args.h"
+#include "cudaTriangles.h"
 
+
+#include <cuda.h>
+#include <cuda_runtime.h>
 int main(int argc, char **argv)
 {
     if (argc < 2) {

@@ -1,6 +1,6 @@
-OPENMP=0
+# OPENMP=0
 DEBUG=0
-CUDA=1
+# CUDA=1
 
 OBJ=main.o test.o args.o utils.o
 
@@ -10,23 +10,26 @@ SLIB=lib${EXEC}.so
 ALIB=lib${EXEC}.a
 OBJDIR=./obj/
 
-CC=nvcc
 
 AR=ar
 ARFLAGS=rcs
-OPTS=-Ofast
-LDFLAGS= -lm -pthread
+# OPTS=-Ofast
+LDFLAGS= -lm
 COMMON= -Iinclude/ -Isrc/
-CFLAGS=-Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC
 
-ifeq ($(CUDA),1)
 CC=nvcc
-CFLAGS+= -arch=sm_50
-endif
+CFLAGS = -arch=sm_50
 
-ifeq ($(OPENMP), 1)
-CFLAGS+= -fopenmp
-endif
+# CFLAGS=-Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC
+
+# ifeq ($(CUDA),1)
+# CC=nvcc
+# CFLAGS+= -arch=sm_50
+# endif
+
+# ifeq ($(OPENMP), 1)
+# CFLAGS+= -fopenmp
+# endif
 
 ifeq ($(DEBUG), 1)
 OPTS=-O0 -g
