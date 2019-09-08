@@ -1,35 +1,20 @@
-# OPENMP=0
 DEBUG=0
-# CUDA=1
-
-OBJ=main.o test.o args.o utils.o
+OBJ=main.o test.o cudaTriangles.o utils.o
 
 VPATH=./src/:./
-EXEC=cuda-triangles
+EXEC=cuda-triangles-exe
 SLIB=lib${EXEC}.so
 ALIB=lib${EXEC}.a
 OBJDIR=./obj/
 
-
 AR=ar
 ARFLAGS=rcs
 # OPTS=-Ofast
-LDFLAGS= -lm
+LDFLAGS= -Xcompiler -fPIC -Xcompiler -lm 
 COMMON= -Iinclude/ -Isrc/
 
 CC=nvcc
 CFLAGS = -arch=sm_50
-
-# CFLAGS=-Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC
-
-# ifeq ($(CUDA),1)
-# CC=nvcc
-# CFLAGS+= -arch=sm_50
-# endif
-
-# ifeq ($(OPENMP), 1)
-# CFLAGS+= -fopenmp
-# endif
 
 ifeq ($(DEBUG), 1)
 OPTS=-O0 -g
@@ -41,18 +26,21 @@ CFLAGS+=$(OPTS)
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 DEPS = $(wildcard src/*.h) Makefile 
 
-all: obj $(SLIB) $(ALIB) $(EXEC)
+all: obj $(ALIB) $(EXEC)
+# $(SLIB)
+# $(LDFLAGS)
+# $(SLIB): $(OBJS)
+# $(CC) $(CFLAGS) -shared $(LDFLAGS) $^ -o $@
 
 $(EXEC): $(OBJS)
-	$(CC) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CC) $(COMMON) $(CFLAGS) $^ -o $@ 
+	
 
 $(ALIB): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $^
 
-$(SLIB): $(OBJS)
-	$(CC) $(CFLAGS) -shared $^ -o $@ $(LDFLAGS)
 
-$(OBJDIR)%.o: %.c $(DEPS)
+$(OBJDIR)%.o: %.cu $(DEPS)
 	$(CC) $(COMMON) $(CFLAGS) -c $< -o $@
 
 obj:

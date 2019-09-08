@@ -9,6 +9,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <float.h>
+#include <iostream>
+
 
 double get_time();
 
