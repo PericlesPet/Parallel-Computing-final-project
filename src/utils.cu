@@ -1,8 +1,8 @@
 #include "utils.h"
 
-void readMtxFile(char *filepath, int *rowVec, int *colVec){
+void readMtxFile(char *filepath, int **rowVec, int **colVec, int *N, int * nze){
     // char *filepath2 = "../graphs/chesapeake.mtx";
-    printf("path is %s\n",filepath);
+    printf("Path for graph is %s\n",filepath);
     // printf("path2 is %s\n",filepath2);
     FILE* mtxFp = fopen(filepath,"r+");
     // FILE* mtxFp = fopen(filepath2,"r+");
@@ -36,27 +36,28 @@ void readMtxFile(char *filepath, int *rowVec, int *colVec){
 
     // printf("tokens array: %s , %s, %s \n",tokens[0],tokens[1],tokens[2]);
     int M = atoi(tokens[0]);
-    int N = atoi(tokens[1]);
-    int nze = atoi(tokens[2]);
+    *N = atoi(tokens[1]);
+    *nze = atoi(tokens[2]);
 
-    rowVec = (int *)malloc(nze*sizeof(int));
-    colVec = (int *)malloc(nze*sizeof(int));
+    *rowVec = (int *)malloc((*nze)*sizeof(int));
+    *colVec = (int *)malloc((*nze)*sizeof(int));
 
     int rowTmp;
     int colTmp;
 
-    for(i=0;i<nze;i++){
+    for(i=0;i<(*nze);i++){
         fscanf(mtxFp,"%d %d",&colTmp,&rowTmp);
-        rowVec[i] = rowTmp;
-        colVec[i] = colTmp;
-        printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
+        (*rowVec)[i] = rowTmp;
+        (*colVec)[i] = colTmp;
+        // printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
     }
         
     // while(buf[0] == '%')
     //     fscanf(buf,mtxFp,\n);
         
+    
+    printf("those are the results: M = %d, N = %d, , nze = %d\n",M,(*N),(*nze));
 
-    printf("those are the results: M = %d, N = %d, , nze = %d\n",M,N,nze);
     fclose(mtxFp);
     return;
 }

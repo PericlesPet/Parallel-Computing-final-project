@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void readMtxFile(char *filename, int *rowVec, int *colVec);
+void readMtxFile(char *filename, int **rowVec, int **colVec, int *N, int *nze);
 
 double get_time();
 

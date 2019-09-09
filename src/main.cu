@@ -26,11 +26,16 @@ int main(void)
 
   int *rowVec;
   int *colVec;
+  int N;
+  int nze;
   
   char *filepath = "graphs/chesapeake.mtx";
+  
+  readMtxFile(filepath, &rowVec, &colVec, &N, &nze);
 
-  readMtxFile(filepath, rowVec, colVec);
+  printf("main: nze = %d, N = %d \n rowVec[0] = %d, colVec[0] = %d\n",nze,N,rowVec[0],colVec[0]);
 
+  
   // // Allocate Unified Memory – accessible from CPU or GPU
   // cudaMallocManaged(&x, N*sizeof(float));
   // cudaMallocManaged(&y, N*sizeof(float));
