@@ -8,10 +8,12 @@
 .fuse*
 lib*
 
+
 # specific files for this project
 src/testing.c
 .vscode/
 cuda-triangles-exe
+src/testing
 
 # OS Generated #
 .DS_Store*
