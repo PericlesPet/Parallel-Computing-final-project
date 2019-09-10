@@ -28,11 +28,14 @@ int main(void)
   int *colVec;
   int N;
   int nze;
+
+  int *rowIndex;
   
   char *filepath = "graphs/chesapeake.mtx";
   
   readMtxFile(filepath, &rowVec, &colVec, &N, &nze);
 
+  separateRows(nze, N, rowVec, colVec, &rowIndex);
   printf("main: nze = %d, N = %d \n rowVec[0] = %d, colVec[0] = %d\n",nze,N,rowVec[0],colVec[0]);
 
   

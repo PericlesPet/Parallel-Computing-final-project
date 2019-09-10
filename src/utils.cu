@@ -56,8 +56,23 @@ void readMtxFile(char *filepath, int **rowVec, int **colVec, int *N, int * nze){
     //     fscanf(buf,mtxFp,\n);
         
     
-    printf("those are the results: M = %d, N = %d, , nze = %d\n",M,(*N),(*nze));
+    // printf("those are the results: M = %d, N = %d, , nze = %d\n",M,(*N),(*nze));
 
     fclose(mtxFp);
     return;
+}
+
+
+void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
+
+    *rowIndex = (int *)malloc(sizeof(int)*N);
+    int counter = 0;
+
+    for(int i=1;i<nze;i++){
+        if(rowVec[i]!=rowVec[i-1]){
+            counter ++;
+            (*rowIndex)[counter]=i;
+            printf("Row %d index: %d\n ---Pair: %d. (%d, %d) \n ---To Pair: %d. (%d, %d) \n",counter,(*rowIndex)[counter],i-1,colVec[i-1],rowVec[i-1],i,colVec[i],rowVec[i]);
+        }
+    }
 }
