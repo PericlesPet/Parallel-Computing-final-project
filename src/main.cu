@@ -47,6 +47,7 @@ int main(void)
   int nze;
 
   int *rowIndex;
+  int *colIndex;
 
   char *filepath = "graphs/chesapeake.mtx";
   
@@ -56,10 +57,12 @@ int main(void)
 
   pairsort(colVec, rowVec, nze);
   
+  separateRows(nze,N, colVec, rowVec, &colIndex);
+
   // for(int i=0;i<nze;i++){
   //   printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
   // }
-  
+
   // // Allocate Unified Memory – accessible from CPU or GPU
   // cudaMallocManaged(&x, N*sizeof(float));
   // cudaMallocManaged(&y, N*sizeof(float));

@@ -66,15 +66,31 @@ void readMtxFile(char *filepath, int **rowVec, int **colVec, int *N, int * nze){
 void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
 
     *rowIndex = (int *)malloc(sizeof(int)*N);
-    int counter = 0;
-
+    
+    // convert from base-1 to base-0
+    int counter = rowVec[0]-1;
+    // if starting from 
+    for(int i=0;i<=counter;i++){
+        (*rowIndex)[i] = 0;
+    }
+    
+    
     for(int i=1;i<nze;i++){
         if(rowVec[i]!=rowVec[i-1]){
             counter ++;
             (*rowIndex)[counter]=i;
-            // printf("Row %d index: %d\n ---Pair: %d. (%d, %d) \n ---To Pair: %d. (%d, %d) \n",counter,(*rowIndex)[counter],i-1,colVec[i-1],rowVec[i-1],i,colVec[i],rowVec[i]);
+            // printf("Row %d index: %d\n ---Pair: %d. (%d, %d) \n ---To Pair: %d. (%d, %d) \n",i,(*rowIndex)[i],i-1,colVec[i-1],rowVec[i-1],i,colVec[i],rowVec[i]);
         }
     }
+    
+    for(int i=counter;i<N;i++){
+        (*rowIndex)[i] = nze-1;
+        // printf("-- %d \n --- %d\n --- %d\n",)
+    }
+    
+    // for(int i=0;i<N;i++){
+    //     printf("Row %d index: %d\n",i,(*rowIndex)[i]);
+    // }
 }
 
 
