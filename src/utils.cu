@@ -72,7 +72,42 @@ void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
         if(rowVec[i]!=rowVec[i-1]){
             counter ++;
             (*rowIndex)[counter]=i;
-            printf("Row %d index: %d\n ---Pair: %d. (%d, %d) \n ---To Pair: %d. (%d, %d) \n",counter,(*rowIndex)[counter],i-1,colVec[i-1],rowVec[i-1],i,colVec[i],rowVec[i]);
+            // printf("Row %d index: %d\n ---Pair: %d. (%d, %d) \n ---To Pair: %d. (%d, %d) \n",counter,(*rowIndex)[counter],i-1,colVec[i-1],rowVec[i-1],i,colVec[i],rowVec[i]);
         }
     }
+}
+
+
+
+void pairsort(int a[], int b[], int n) 
+{ 
+    struct pair pairt[n]; 
+  
+    // Storing the respective array 
+    // elements in pairs. 
+    for (int i = 0; i < n; i++)  
+    { 
+        pairt[i].col = a[i]; 
+        pairt[i].row = b[i]; 
+    } 
+  
+    // Sorting the pair array.
+
+    qsort(pairt, n, sizeof(struct pair), comparator);
+
+    // sort(pairt, pairt + n); 
+      
+    // Modifying original arrays 
+    for (int i = 0; i < n; i++)  
+    { 
+        a[i] = pairt[i].col; 
+        b[i] = pairt[i].row; 
+    } 
+} 
+
+int comparator(const void *p, const void *q)
+{
+    int l = ((struct pair *)p)->col;
+    int r = ((struct pair *)q)->col;
+    return (l - r);
 }

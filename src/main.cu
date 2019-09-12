@@ -4,10 +4,27 @@
 #include "utils.h"
 #include "cudaTriangles.h"
 
+#include <assert.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-
+// Convenience function for checking CUDA runtime API results
+// can be wrapped around any runtime API call. No-op in release builds. 
+// reference: https://github.com/NVIDIA-developer-blog/code-samples/blob/master/series/cuda-cpp/coalescing-global/coalescing.cu
+// e.g.: checkCuda( cudaMalloc(&d_a, n * 33 * sizeof(T)) );
+// e.g.: kernel<<< x,y >>>()
+//       checkCuda( cudaGetLastError() );
+inline
+cudaError_t checkCuda(cudaError_t result)
+{
+#if defined(DEBUG) || defined(_DEBUG)
+  if (result != cudaSuccess) {
+    fprintf(stderr, "CUDA Runtime Error: %s\n", cudaGetErrorString(result));
+    assert(result == cudaSuccess);
+  }
+#endif
+  return result;
+}
 
 
 
@@ -30,14 +47,18 @@ int main(void)
   int nze;
 
   int *rowIndex;
-  
+
   char *filepath = "graphs/chesapeake.mtx";
   
   readMtxFile(filepath, &rowVec, &colVec, &N, &nze);
-
   separateRows(nze, N, rowVec, colVec, &rowIndex);
-  printf("main: nze = %d, N = %d \n rowVec[0] = %d, colVec[0] = %d\n",nze,N,rowVec[0],colVec[0]);
+  // printf("main: nze = %d, N = %d \n rowVec[0] = %d, colVec[0] = %d\n",nze,N,rowVec[0],colVec[0]);
 
+  pairsort(colVec, rowVec, nze);
+  
+  // for(int i=0;i<nze;i++){
+  //   printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
+  // }
   
   // // Allocate Unified Memory – accessible from CPU or GPU
   // cudaMallocManaged(&x, N*sizeof(float));

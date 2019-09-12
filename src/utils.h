@@ -11,5 +11,14 @@ void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex);
 
 double get_time();
 
+struct pair {
+    int row;
+    int col;
+};
+
+void pairsort(int a[], int b[], int n);
+
+int comparator(const void *p, const void *q);
+
 
 #endif
