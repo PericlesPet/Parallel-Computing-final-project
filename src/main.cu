@@ -38,30 +38,80 @@ void add(int n, float *x, float *y)
 
 int main(void)
 {
-  // int N = 1<<20;
-  // float *x, *y;
+  
+  // PARAMETERS
+  int blockMultiplier = 4;
+  int threadMultiplier = 4;
 
+
+  //VAR DECLARATIONS
   int *rowVec;
   int *colVec;
   int N;
   int nze;
-
   int *rowIndex;
   int *colIndex;
-
   char *filepath = "graphs/chesapeake.mtx";
   
   readMtxFile(filepath, &rowVec, &colVec, &N, &nze);
+  printf("hi");
+    
+  // ROWS
+  // Find indeces of separate sparse rows --> assigns rowIndex array
   separateRows(nze, N, rowVec, colVec, &rowIndex);
-  // printf("main: nze = %d, N = %d \n rowVec[0] = %d, colVec[0] = %d\n",nze,N,rowVec[0],colVec[0]);
-
+  //row major pair array
+  struct pair *pairs_rm;
+  cudaMallocHost(&pairs_rm,sizeof(pair)*nze);
+  // unify vectors into pair array
+  arraysToPairs(rowVec, colVec, nze, pairs_rm);
+  
+  // Sort vectors Column-wise
   pairsort(colVec, rowVec, nze);
   
+  // COLUMNS
+  // Find indeces of separate sparse columns --> assigns colIndex array
   separateRows(nze,N, colVec, rowVec, &colIndex);
+  //column major pair array
+  struct pair *pairs_cm;
+  cudaMallocHost(&pairs_cm,sizeof(pair)*nze);
+  // unify vectors into pair array
+  arraysToPairs(rowVec, colVec, nze, pairs_cm);
+
+
+  struct pair *pairs_cm_dev, *pairs_rm_dev;
+  int *colIndex_dev, *rowIndex_dev;
+
+  // declare pair arrays directly for device use
+  cudaMemcpy(pairs_cm_dev,pairs_cm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
+  cudaMemcpy(pairs_rm_dev,pairs_rm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
+  cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*nze,cudaMemcpyHostToDevice);
+  cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*nze,cudaMemcpyHostToDevice);
+
+  // colVec & rowVec no longer needed
+  free(colVec);
+  free(rowVec);
+  
+  // Get Device Properties 
+
+  int deviceId;
+  cudaGetDevice(&deviceId);
+  cudaDeviceProp props;
+  cudaGetDeviceProperties(&props, deviceId);
+  int warpsize = props.warpSize;         // Warp Size
+  int SMs = props.multiProcessorCount;  //Streaming Multiprocessors
+
+  int blocks = blockMultiplier * SMs;
+  int threads = threadMultiplier * warpsize; 
+
+  // triangle-sum<<<blocks,threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
 
   // for(int i=0;i<nze;i++){
   //   printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
+  //   printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);
   // }
+  
+
+
 
   // // Allocate Unified Memory – accessible from CPU or GPU
   // cudaMallocManaged(&x, N*sizeof(float));

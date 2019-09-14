@@ -127,3 +127,11 @@ int comparator(const void *p, const void *q)
     int r = ((struct pair *)q)->col;
     return (l - r);
 }
+
+
+void arraysToPairs(int *rowVec, int* colVec, int nze, pair *pairs){
+    for(int i=0;i<nze;i++){
+        (pairs[i]).row = rowVec[i];   
+        (pairs[i]).col = colVec[i];   
+    }
+}
