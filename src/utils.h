@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 
 void readMtxFile(char *filename, int **rowVec, int **colVec, int *N, int *nze);
 

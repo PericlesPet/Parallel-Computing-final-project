@@ -54,7 +54,6 @@ int main(void)
   char *filepath = "graphs/chesapeake.mtx";
   
   readMtxFile(filepath, &rowVec, &colVec, &N, &nze);
-  printf("hi");
     
   // ROWS
   // Find indeces of separate sparse rows --> assigns rowIndex array
@@ -103,8 +102,11 @@ int main(void)
   int blocks = blockMultiplier * SMs;
   int threads = threadMultiplier * warpsize; 
 
+  triangleSum<<<blocks,threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
   // triangle-sum<<<blocks,threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
 
+
+  cudaDeviceSynchronize();
   // for(int i=0;i<nze;i++){
   //   printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
   //   printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);

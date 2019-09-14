@@ -135,3 +135,13 @@ void arraysToPairs(int *rowVec, int* colVec, int nze, pair *pairs){
         (pairs[i]).col = colVec[i];   
     }
 }
+
+
+double get_time()
+{
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        return 0;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
