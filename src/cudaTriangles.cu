@@ -8,8 +8,8 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
     unsigned int stride = blockDim.x * gridDim.x;
     int sum_i;
 
-    int minBlocks = ceilf((float) N / (float) blockDim.x);
-    // int minBlocks = ceilf((float) nze / (float) blockDim.x);
+    // int minBlocks = ceilf((float) N / (float) blockDim.x);
+    int minBlocks = ceilf((float) nze / (float) blockDim.x);
     
     // printf("tid = %d, i = %d, stride = %d, N = %d, minBlocks = %d, blockDim = %d, minBlocks*blockDim = %d \n", tid,i,stride, N, minBlocks, blockDim.x, minBlocks*blockDim.x);
     // if(i<nze){
@@ -22,12 +22,14 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
             printf(" ---- tid = %d, i = %d, stride = %d, N = %d, rowIndex_dev[0] = %d \n", tid,i,stride, N, rowIndex_dev[0] );
         }
         
-        if(index<N){
-            sum_i = rowIndex_dev[index];
+        if(index<nze){
+            // sum_i = pairs_cm_dev[index].row;
+            sum_i = sumForPair(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, index);
+            // sum_i = rowIndex_dev[index];
         }else{
             sum_i = 0;
         }
-        printf("tid = %d, i = %d, stride = %d, N = %d, minBlocks = %d, blockDim = %d, index = %d, sum_i = %d \n", tid,i,stride, N, minBlocks, blockDim.x, index, sum_i);
+        // printf("tid = %d, i = %d, stride = %d, nze = %d, minBlocks = %d, blockDim = %d, index = %d, sum_i = %d \n", tid,i,stride, nze, minBlocks, blockDim.x, index, sum_i);
         // }
         
         
@@ -57,3 +59,17 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
         
 }
     
+
+
+//returns the final result of matrix A*A.*A for position (pair[index].row , pair[index].col)
+__device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N, int index){
+    int row = pairs_cm_dev[index].row;
+    int col = pairs_cm_dev[index].col;
+    int *row_arr;
+    int *col_arr;
+    
+    // allRowNze()
+
+    //  = (int*)malloc(sizeof(int)*10);
+    return 1;
+}
