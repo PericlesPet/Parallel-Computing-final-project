@@ -68,8 +68,12 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
     int *row_arr;
     int *col_arr;
     
-    allRowNze(row, &row_arr, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
-    allRowNze(col, &col_arr, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
+    int rowNzeCount = 0;
+    int colNzeCount = 0;
+
+    allRowNze(row, &row_arr, &rowNzeCount, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
+    allRowNze(col, &col_arr, &colNzeCount, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
+
 
     free(row_arr);
     free(col_arr);
@@ -78,7 +82,7 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
 }
 
 // assign to *row_arr matrix all non-zero-elements of A's "row" row.
-__device__ void allRowNze(int row, int **row_arr,int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N){
+__device__ void allRowNze(int row, int **row_arr,int *rowNzeCount, int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N){
 
     *row_arr = (int *)malloc(sizeof(int)*10);
     // (*row_arr)[i] = 5;
