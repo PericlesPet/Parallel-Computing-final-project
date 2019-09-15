@@ -74,11 +74,12 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
     allRowNze(row, &row_arr, &rowNzeCount, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
     allRowNze(col, &col_arr, &colNzeCount, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
 
+    int pairResult = commonElementCount(row_arr, rowNzeCount, col_arr,colNzeCount); 
 
     free(row_arr);
     free(col_arr);
     //  = (int*)malloc(sizeof(int)*10);
-    return 1;
+    return pairResult;
 }
 
 // assign to *row_arr matrix all non-zero-elements of A's "row" row.
@@ -86,4 +87,8 @@ __device__ void allRowNze(int row, int **row_arr,int *rowNzeCount, int *rowIndex
 
     *row_arr = (int *)malloc(sizeof(int)*10);
     // (*row_arr)[i] = 5;
+}
+
+__device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,int colNzeCount){
+    return 1;
 }
