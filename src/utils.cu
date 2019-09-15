@@ -145,3 +145,11 @@ double get_time()
     }
     return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
+
+int quickSum(int *arr, int N){
+    int sum = 0;
+    for(int i=0;i<N;i++){
+        sum+= arr[i];
+    }
+    return sum;
+}

@@ -40,8 +40,8 @@ int main(void)
 {
   
   // PARAMETERS
-  int blockMultiplier = 4;
-  int threadMultiplier = 4;
+  int blockMultiplier = 1;
+  int threadMultiplier = 1;
 
 
   //VAR DECLARATIONS
@@ -53,14 +53,19 @@ int main(void)
   int *colIndex;
   char *filepath = "graphs/chesapeake.mtx";
   
+
+  // READ SPARSE MATRIX FROM FILE
   readMtxFile(filepath, &rowVec, &colVec, &N, &nze);
     
-  // ROWS
+  //  STORE ROWS  : from rowVec, colVec --> pairs_rm, rowIndex
+
   // Find indeces of separate sparse rows --> assigns rowIndex array
   separateRows(nze, N, rowVec, colVec, &rowIndex);
   //row major pair array
   struct pair *pairs_rm;
+  struct pair *pairs_rm_dev;
   cudaMallocHost(&pairs_rm,sizeof(pair)*nze);
+  cudaMalloc(&pairs_rm_dev,sizeof(pair)*nze);
   // unify vectors into pair array
   arraysToPairs(rowVec, colVec, nze, pairs_rm);
   
@@ -72,26 +77,30 @@ int main(void)
   separateRows(nze,N, colVec, rowVec, &colIndex);
   //column major pair array
   struct pair *pairs_cm;
+  struct pair *pairs_cm_dev;
   cudaMallocHost(&pairs_cm,sizeof(pair)*nze);
+  cudaMalloc(&pairs_cm_dev, sizeof(pair)*nze);
   // unify vectors into pair array
   arraysToPairs(rowVec, colVec, nze, pairs_cm);
 
 
-  struct pair *pairs_cm_dev, *pairs_rm_dev;
+  // struct pair *pairs_cm_dev, *pairs_rm_dev;
   int *colIndex_dev, *rowIndex_dev;
+
+  cudaMalloc(&colIndex_dev, sizeof(int)*N);
+  cudaMalloc(&rowIndex_dev, sizeof(int)*N);
 
   // declare pair arrays directly for device use
   cudaMemcpy(pairs_cm_dev,pairs_cm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
   cudaMemcpy(pairs_rm_dev,pairs_rm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
-  cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*nze,cudaMemcpyHostToDevice);
-  cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*nze,cudaMemcpyHostToDevice);
+  cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
+  cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
 
   // colVec & rowVec no longer needed
   free(colVec);
   free(rowVec);
   
   // Get Device Properties 
-
   int deviceId;
   cudaGetDevice(&deviceId);
   cudaDeviceProp props;
@@ -102,14 +111,32 @@ int main(void)
   int blocks = blockMultiplier * SMs;
   int threads = threadMultiplier * warpsize; 
 
-  triangleSum<<<blocks,threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
-  // triangle-sum<<<blocks,threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
+  printf("blocks = %d, threads = %d \n",blocks,threads);
+  
+  // triangleSum array will have ceil(nze/blockDim.x) / blocks size
+  int *triangleSum_host;
+  cudaMallocHost(&triangleSum_host, sizeof(int)*blocks);
+  int *triangleSum_dev;
+  cudaMalloc(&triangleSum_dev,sizeof(int)*blocks);
 
 
-  cudaDeviceSynchronize();
-  // for(int i=0;i<nze;i++){
-  //   printf("%d. (%d , %d) \n",i,colVec[i],rowVec[i]);
-  //   printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);
+  triangleSum<<<blocks,threads,sizeof(int)*threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, triangleSum_dev);
+
+  checkCuda( cudaGetLastError() );
+  checkCuda(cudaDeviceSynchronize());
+  checkCuda(cudaMemcpy(triangleSum_host, triangleSum_dev,sizeof(int)*blocks,cudaMemcpyDeviceToHost));  
+  checkCuda(cudaFree(triangleSum_dev));
+
+  // printf(" --> sum is: \n");
+  for(int i=0;i<blocks;i++){
+    printf(" ooo array = %d\n",triangleSum_host[i]);
+  }
+  int cudaSum = quickSum(triangleSum_host, blocks);
+  int realSum = quickSum(rowIndex, N);
+  printf(" --> sum is: %d , realSum is: %d\n",cudaSum,realSum);
+  // for(int i=0;i<N;i++){
+  //   printf("%d. (%d) \n",i,rowIndex[i]);
+  //   // printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);
   // }
   
 

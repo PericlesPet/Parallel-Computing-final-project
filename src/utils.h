@@ -24,4 +24,6 @@ int comparator(const void *p, const void *q);
 void arraysToPairs(int *rowVec, int* colVec, int nze, pair *pairs);
 
 
+int quickSum(int *arr, int N);
+
 #endif

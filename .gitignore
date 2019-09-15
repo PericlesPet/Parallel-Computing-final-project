@@ -11,6 +11,7 @@ lib*
 
 # specific files for this project
 src/testing.c
+src/testing.cu
 .vscode/
 cuda-triangles-exe
 src/testing
