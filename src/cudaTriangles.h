@@ -19,4 +19,6 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
 
 __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N, int index);
 
+__device__ void allRowNze(int row, int **row_arr,int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N);
+
 #endif
