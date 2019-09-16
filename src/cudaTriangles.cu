@@ -53,7 +53,7 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
         // write result for this block to global mem
         if (tid == 0){
             triangle_sum[blockIdx.x] += sdata[0];
-            printf("TriangleSum[%d] = %d \n\n",blockIdx.x,triangle_sum[blockIdx.x]);
+            // printf("TriangleSum[%d] = %d \n\n",blockIdx.x,triangle_sum[blockIdx.x]);
         }   
         
     }
@@ -81,6 +81,7 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
     free(row_arr);
     free(col_arr);
     //  = (int*)malloc(sizeof(int)*10);
+    printf("<---> sum for pair (%d, %d) = %d \n", col,row,pairResult);
     return pairResult;
 }
 
@@ -144,7 +145,7 @@ __device__ void allRowNze(int row, int **row_arr,int *rowNzeCount, int *rowIndex
     if(count == (colElems+rowElems)){
         // printf("- - - YES: row = %d, rowNzeCount = %d, colElems = %d, rowElems = %d , count = %d\n",row,(*rowNzeCount),(staticCol),(staticrow),count);
     }else{
-        printf("^ ^ ^ NO: row = %d, rowNzeCount = %d, colElems = %d, rowElems = %d , count = %d\n",row,(*rowNzeCount),(staticCol),(staticrow),count);
+        // printf("^ ^ ^ NO: row = %d, rowNzeCount = %d, colElems = %d, rowElems = %d , count = %d\n",row,(*rowNzeCount),(staticCol),(staticrow),count);
         // printf("nooooo\n");
     }
     
@@ -177,6 +178,7 @@ __device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,in
     }
     // int rowCount = rowNzeCount;
     // int colCount = colNzeCount;
+
     printf(">>>Row %d : [", row);
 
     for(int i=0;i<rowNzeCount;i++){

@@ -74,11 +74,14 @@ void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
         (*rowIndex)[i] = 0;
     }
     
-    
+    int rowDiff = 0;
     for(int i=1;i<nze;i++){
         if(rowVec[i]!=rowVec[i-1]){
-            counter ++;
-            (*rowIndex)[counter]=i;
+            rowDiff = rowVec[i]-rowVec[i-1];
+            for(int j=0;j<rowDiff;j++){
+                counter ++;
+                (*rowIndex)[counter]=i;
+            }
             // printf("Row %d index: %d\n ---Pair: %d. (%d, %d) \n ---To Pair: %d. (%d, %d) \n",i,(*rowIndex)[i],i-1,colVec[i-1],rowVec[i-1],i,colVec[i],rowVec[i]);
         }
     }
@@ -97,8 +100,10 @@ void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
 
 void pairsort(int a[], int b[], int n) 
 { 
-    struct pair pairt[n]; 
-  
+    printf("ah\n");
+    struct pair *pairt = (pair *)malloc(n*sizeof(pair)); 
+    
+    printf("ah\n");
     // Storing the respective array 
     // elements in pairs. 
     for (int i = 0; i < n; i++)  
