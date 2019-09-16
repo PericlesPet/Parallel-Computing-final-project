@@ -21,6 +21,6 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
 
 __device__ void allRowNze(int row, int **row_arr,int *rowNzeCount,int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N);
 
-__device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,int colNzeCount);
+__device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,int colNzeCount, int row, int col);
 
 #endif

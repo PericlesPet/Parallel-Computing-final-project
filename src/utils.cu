@@ -83,8 +83,8 @@ void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
         }
     }
     
-    for(int i=counter;i<N;i++){
-        (*rowIndex)[i] = nze-1;
+    for(int i=counter+1;i<N;i++){
+        (*rowIndex)[i] = nze;
         // printf("-- %d \n --- %d\n --- %d\n",)
     }
     

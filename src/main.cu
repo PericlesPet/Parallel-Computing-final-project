@@ -43,6 +43,7 @@ int main(void)
   int *rowIndex;
   int *colIndex;
   char *filepath = "graphs/chesapeake.mtx";
+  // char *filepath = "graphs/auto.mtx";
   
 
   // READ SPARSE MATRIX FROM FILE
@@ -52,45 +53,64 @@ int main(void)
 
   // Find indeces of separate sparse rows --> assigns rowIndex array
   separateRows(nze, N, rowVec, colVec, &rowIndex);
-  //row major pair array
-  struct pair *pairs_rm;
-  struct pair *pairs_rm_dev;
-  cudaMallocHost(&pairs_rm,sizeof(pair)*nze);
-  cudaMalloc(&pairs_rm_dev,sizeof(pair)*nze);
-  // unify vectors into pair array
-  arraysToPairs(rowVec, colVec, nze, pairs_rm);
+
+//printf for each (row, col):
+
+//row major pair array
+struct pair *pairs_rm;
+struct pair *pairs_rm_dev;
+cudaMallocHost(&pairs_rm,sizeof(pair)*nze);
+cudaMalloc(&pairs_rm_dev,sizeof(pair)*nze);
+// unify vectors into pair array
+arraysToPairs(rowVec, colVec, nze, pairs_rm);
+
+// for(int i=0;i<nze;i++){
+//   printf("%d. (col,row) = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
+
+for(int i=0;i<nze;i++){
+  printf("%d. (col,row) = (%d, %d) , pair = (%d, %d) -- arr_rm index = [%d + count]\n",i, colVec[i], rowVec[i], pairs_rm[i].col, pairs_rm[i].row, rowIndex[rowVec[i]-1]);
   
-  // Sort vectors Column-wise
-  pairsort(colVec, rowVec, nze);
+}  
+// Sort vectors Column-wise
+pairsort(colVec, rowVec, nze);
+printf("\n\n");
+printf("\n\n");
+// COLUMNS
+// Find indeces of separate sparse columns --> assigns colIndex array
+separateRows(nze,N, colVec, rowVec, &colIndex);
+//column major pair array
+struct pair *pairs_cm;
+struct pair *pairs_cm_dev;
+cudaMallocHost(&pairs_cm,sizeof(pair)*nze);
+cudaMalloc(&pairs_cm_dev, sizeof(pair)*nze);
+// unify vectors into pair array
+arraysToPairs(rowVec, colVec, nze, pairs_cm);
+
+for(int i=0;i<nze;i++){
+  printf("%d. (col,row) = (%d, %d) -- col_cm index = [%d + count] \n",i, colVec[i], rowVec[i], colIndex[colVec[i]-1]);
   
-  // COLUMNS
-  // Find indeces of separate sparse columns --> assigns colIndex array
-  separateRows(nze,N, colVec, rowVec, &colIndex);
-  //column major pair array
-  struct pair *pairs_cm;
-  struct pair *pairs_cm_dev;
-  cudaMallocHost(&pairs_cm,sizeof(pair)*nze);
-  cudaMalloc(&pairs_cm_dev, sizeof(pair)*nze);
-  // unify vectors into pair array
-  arraysToPairs(rowVec, colVec, nze, pairs_cm);
+}  
 
+// struct pair *pairs_cm_dev, *pairs_rm_dev;
+int *colIndex_dev, *rowIndex_dev;
 
-  // struct pair *pairs_cm_dev, *pairs_rm_dev;
-  int *colIndex_dev, *rowIndex_dev;
+cudaMalloc(&colIndex_dev, sizeof(int)*N);
+cudaMalloc(&rowIndex_dev, sizeof(int)*N);
 
-  cudaMalloc(&colIndex_dev, sizeof(int)*N);
-  cudaMalloc(&rowIndex_dev, sizeof(int)*N);
+// declare pair arrays directly for device use
+cudaMemcpy(pairs_cm_dev,pairs_cm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
+cudaMemcpy(pairs_rm_dev,pairs_rm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
+cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
+cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
 
-  // declare pair arrays directly for device use
-  cudaMemcpy(pairs_cm_dev,pairs_cm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
-  cudaMemcpy(pairs_rm_dev,pairs_rm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
-  cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
-  cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
+// colVec & rowVec no longer needed
+free(colVec);
+free(rowVec);
 
-  // colVec & rowVec no longer needed
-  free(colVec);
-  free(rowVec);
+// for(int i=0;i<nze;i++){
+//   printf("%d. pair = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
   
+// }  
   // Get Device Properties 
   int deviceId;
   cudaGetDevice(&deviceId);
@@ -130,7 +150,7 @@ int main(void)
   }
   int realSum = quickSum(quickArr, nze);
   // int realSum = quickSum(rowIndex, N);
-  printf(" --> sum is: %d , realSum is: %d\n",cudaSum,realSum);
+  printf(" --> sum is: %d , result is: %d, realSum is: %d\n",cudaSum*2,cudaSum/3,realSum);
   // for(int i=0;i<N;i++){
   //   printf("%d. (%d) \n",i,rowIndex[i]);
   //   // printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);
