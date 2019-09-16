@@ -32,8 +32,8 @@ int main(void)
 {
   
   // PARAMETERS
-  int blockMultiplier = 8;
-  int threadMultiplier = 2;
+  int blockMultiplier = 1;
+  int threadMultiplier = 1;
 
 
   //VAR DECLARATIONS
@@ -43,8 +43,8 @@ int main(void)
   int nze;
   int *rowIndex;
   int *colIndex;
-  // char *filepath = "graphs/chesapeake.mtx";
-  char *filepath = "graphs/auto.mtx";
+  char *filepath = "graphs/chesapeake.mtx";
+  // char *filepath = "graphs/auto.mtx";
   // char *filepath = "graphs/delaunay_n10.mtx";
   
   
@@ -69,10 +69,9 @@ int main(void)
   // for(int i=0;i<nze;i++){
   //     printf("%d. (col,row) = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
   // }
-    // for(int i=0;i<nze;i++){
-    //     printf("%d. (col,row) = (%d, %d) , pair = (%d, %d) -- arr_rm index = [%d + count]\n",i, colVec[i], rowVec[i], pairs_rm[i].col, pairs_rm[i].row, rowIndex[rowVec[i]-1]);
-      
-    //   }  
+    for(int i=0;i<nze;i++){
+        printf("%d. (col,row) = (%d, %d) , pair = (%d, %d) -- arr_rm index = [%d + count]\n",i, colVec[i], rowVec[i], pairs_rm[i].col, pairs_rm[i].row, rowIndex[rowVec[i]-1]);  
+    }  
     // printf("\n");
       printf("nze = %d, colVec[nze] = %d, colVec[nze] = %d\n", nze, colVec[nze-1], rowVec[nze-1]);
       // Sort vectors Column-wise
@@ -92,10 +91,10 @@ int main(void)
       // unify vectors into pair array
       arraysToPairs(rowVec, colVec, nze, pairs_cm);
       
-// for(int i=0;i<nze;i++){
-//     printf("%d. (col,row) = (%d, %d) -- col_cm index = [%d + count] \n",i, colVec[i], rowVec[i], colIndex[colVec[i]-1]);
+for(int i=0;i<nze;i++){
+    printf("%d. (col,row) = (%d, %d) -- col_cm index = [%d + count] \n",i, colVec[i], rowVec[i], colIndex[colVec[i]-1]);
   
-//   }  
+  }  
   
 // struct pair *pairs_cm_dev, *pairs_rm_dev;
 int *colIndex_dev, *rowIndex_dev;

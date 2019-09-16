@@ -8,6 +8,7 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
     unsigned int stride = blockDim.x * gridDim.x;
     int sum_i;
 
+
     // int minBlocks = ceilf((float) N / (float) blockDim.x);
     int minBlocks = ceilf((float) nze / (float) blockDim.x);
     
@@ -24,7 +25,8 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
         }
         
         // if(index==8){
-        if(index<nze){
+            // printf("lololol \n");
+            if(index<nze){
             // sum_i = 1;
             // sum_i = pairs_cm_dev[index].row;
             sum_i = sumForPair(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, index);
@@ -71,10 +73,15 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
     // printf(" XyXyX -- row = %d , col = %d \n",row,col);
     int *row_arr;
     int *col_arr;
+    // int *row_arr = row_arr_p[row];
+    // int *col_arr = row_arr_p[col];
     
-    int rowNzeCount = 0;
-    int colNzeCount = 0;
+    int rowNzeCount = 0;// = row_arr[0];
+    int colNzeCount = 0; //= col_arr[0];
+    // int rowNzeCount = row_arr[0];
+    // int colNzeCount = col_arr[0];
 
+    // printf("rowNzeCount & col = %d, %d \n", rowNzeCount, colNzeCount);
     allRowNze(row, &row_arr, &rowNzeCount, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
     allRowNze(col, &col_arr, &colNzeCount, rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N);
 
@@ -105,9 +112,9 @@ __device__ void allRowNze(int row, int **row_arr,int *rowNzeCount, int *rowIndex
 
     // printf("row = %d, colElems = %d, rowElems = %d \n", row, colElems, rowElems);
     //total elements =  col elems + row elems
-    (*rowNzeCount) = colElems + rowElems;
-    (*row_arr) = (int *)malloc(sizeof(int)*(colElems+rowElems));
-    
+    (*row_arr) = (int *)malloc(sizeof(int)*(colElems+rowElems+1));
+    (*row_arr)[0] = colElems + rowElems;
+    (*rowNzeCount) = (*row_arr)[0];
     // need 2 pairs to calculate distance between them
     struct pair prevElem;
     
@@ -125,7 +132,7 @@ __device__ void allRowNze(int row, int **row_arr,int *rowNzeCount, int *rowIndex
         nextElem = pairs_cm_dev[colIndex_dev[row]+count];  // get from 'row'-th column the 'count'-th nz element
         dist = (nextElem.row - prevElem.row) + (nextElem.col - prevElem.col);
         totalDist += dist;
-        (*row_arr)[count] = totalDist;
+        (*row_arr)[count+1] = totalDist;
         
         count ++;
         prevElem = nextElem;
@@ -137,19 +144,19 @@ __device__ void allRowNze(int row, int **row_arr,int *rowNzeCount, int *rowIndex
         nextElem = pairs_rm_dev[rowIndex_dev[row] + count - staticCol];  // get from 'row'-th rowumn the 'count-colElems'-th nz element
         dist = (nextElem.row - prevElem.row) + (nextElem.col - prevElem.col);
         totalDist += dist;
-        (*row_arr)[count] = totalDist;
+        (*row_arr)[count+1] = totalDist;
         
         count ++;
         prevElem = nextElem;
         rowElems--;
     }
     
-    if(count == (colElems+rowElems)){
+    // if(count == (colElems+rowElems)){
         // printf("- - - YES: row = %d, rowNzeCount = %d, colElems = %d, rowElems = %d , count = %d\n",row,(*rowNzeCount),(staticCol),(staticrow),count);
-    }else{
+    // }else{
         // printf("^ ^ ^ NO: row = %d, rowNzeCount = %d, colElems = %d, rowElems = %d , count = %d\n",row,(*rowNzeCount),(staticCol),(staticrow),count);
         // printf("nooooo\n");
-    }
+    // }
     
     
     // *row_arr = (int *)malloc(sizeof(int)*10);
@@ -166,14 +173,14 @@ __device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,in
 
     while(rowCount<rowNzeCount && colCount<colNzeCount){
 
-        if(row_arr[rowCount]==col_arr[colCount]){
+        if(row_arr[rowCount+1]==col_arr[colCount+1]){
             commonElements++;
             rowCount++;
             colCount++;
     
-        }else if(row_arr[rowCount]>col_arr[colCount]){        
+        }else if(row_arr[rowCount+1]>col_arr[colCount+1]){        
             colCount++;
-        }else if(row_arr[rowCount]<col_arr[colCount]){
+        }else if(row_arr[rowCount+1]<col_arr[colCount+1]){
             rowCount++;
         }
 
@@ -181,22 +188,22 @@ __device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,in
     // int rowCount = rowNzeCount;
     // int colCount = colNzeCount;
 
-    // printf(">>>Row %d : [", row);
+    printf(">>>Row %d : elems = %d [", row, row_arr[0]);
 
-    // for(int i=0;i<rowNzeCount;i++){
-    //     printf(" %d",row_arr[i]);
-    //     // if(intex ==0){
-    //     // }
-    // }    
-    // printf("\n");
-    // // printf(" ]\n");
+    for(int i=1;i<=rowNzeCount;i++){
+        printf(" %d",row_arr[i]);
+        // if(intex ==0){
+        // }
+    }    
+    printf("\n");
+    // printf(" ]\n");
 
-    // printf(">>>Col %d : [", col);
-    // for(int i=0;i<colNzeCount;i++){
-    //     printf("%d ",col_arr[i]);
-    // }    
-    // printf("\n");
-    // printf(">>> (%d X %d) common: %d \n", col+1, row+1, commonElements );
+    printf(">>>Col %d : elems = %d [", col, col_arr[0]);
+    for(int i=1;i<=colNzeCount;i++){
+        printf("%d ",col_arr[i]);
+    }    
+    printf("\n");
+    printf(">>> (%d X %d) common: %d \n", col+1, row+1, commonElements );
 
     // printf("")
     return commonElements;
