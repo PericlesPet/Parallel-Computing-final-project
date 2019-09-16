@@ -1,4 +1,4 @@
-#include <cudaTriangles.h>
+#include "cudaTriangles.h"
 
 
 __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_dev, pair *pairs_rm_dev, int nze, int N, int *triangle_sum){
@@ -18,12 +18,14 @@ __global__ void triangleSum(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm
     // }
 
     for(int index=i; index<minBlocks*blockDim.x;index+=stride){
+        
         if(tid ==0){
             // printf(" ---- tid = %d, i = %d, stride = %d, N = %d, rowIndex_dev[0] = %d \n", tid,i,stride, N, rowIndex_dev[0] );
         }
         
         // if(index==8){
         if(index<nze){
+            // sum_i = 1;
             // sum_i = pairs_cm_dev[index].row;
             sum_i = sumForPair(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, index);
             // sum_i = rowIndex_dev[index];
@@ -81,7 +83,7 @@ __device__ int sumForPair(int *rowIndex_dev, int *colIndex_dev, pair *pairs_cm_d
     free(row_arr);
     free(col_arr);
     //  = (int*)malloc(sizeof(int)*10);
-    printf("<---> sum for pair (%d, %d) = %d \n", col,row,pairResult);
+    // printf("<---> sum for pair (%d, %d) = %d \n", col,row,pairResult);
     return pairResult;
 }
 
@@ -179,22 +181,22 @@ __device__ int commonElementCount(int *row_arr, int rowNzeCount, int *col_arr,in
     // int rowCount = rowNzeCount;
     // int colCount = colNzeCount;
 
-    printf(">>>Row %d : [", row);
+    // printf(">>>Row %d : [", row);
 
-    for(int i=0;i<rowNzeCount;i++){
-        printf(" %d",row_arr[i]);
-        // if(intex ==0){
-        // }
-    }    
-    printf("\n");
-    // printf(" ]\n");
+    // for(int i=0;i<rowNzeCount;i++){
+    //     printf(" %d",row_arr[i]);
+    //     // if(intex ==0){
+    //     // }
+    // }    
+    // printf("\n");
+    // // printf(" ]\n");
 
-    printf(">>>Col %d : [", col);
-    for(int i=0;i<colNzeCount;i++){
-        printf("%d ",col_arr[i]);
-    }    
-    printf("\n");
-    printf(">>> (%d X %d) common: %d \n", col+1, row+1, commonElements );
+    // printf(">>>Col %d : [", col);
+    // for(int i=0;i<colNzeCount;i++){
+    //     printf("%d ",col_arr[i]);
+    // }    
+    // printf("\n");
+    // printf(">>> (%d X %d) common: %d \n", col+1, row+1, commonElements );
 
     // printf("")
     return commonElements;

@@ -1,9 +1,10 @@
 
 #include "test.h"
-#include "args.h"
+// #include "args.h"
 #include "utils.h"
 #include "cudaTriangles.h"
 
+#include <unistd.h>
 #include <assert.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -31,8 +32,8 @@ int main(void)
 {
   
   // PARAMETERS
-  int blockMultiplier = 1;
-  int threadMultiplier = 1;
+  int blockMultiplier = 8;
+  int threadMultiplier = 2;
 
 
   //VAR DECLARATIONS
@@ -43,8 +44,8 @@ int main(void)
   int *rowIndex;
   int *colIndex;
   // char *filepath = "graphs/chesapeake.mtx";
-  // char *filepath = "graphs/auto.mtx";
-  char *filepath = "graphs/delaunay_n10.mtx";
+  char *filepath = "graphs/auto.mtx";
+  // char *filepath = "graphs/delaunay_n10.mtx";
   
   
   // READ SPARSE MATRIX FROM FILE
@@ -68,13 +69,15 @@ int main(void)
   // for(int i=0;i<nze;i++){
   //     printf("%d. (col,row) = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
   // }
-    for(int i=0;i<nze;i++){
-        printf("%d. (col,row) = (%d, %d) , pair = (%d, %d) -- arr_rm index = [%d + count]\n",i, colVec[i], rowVec[i], pairs_rm[i].col, pairs_rm[i].row, rowIndex[rowVec[i]-1]);
+    // for(int i=0;i<nze;i++){
+    //     printf("%d. (col,row) = (%d, %d) , pair = (%d, %d) -- arr_rm index = [%d + count]\n",i, colVec[i], rowVec[i], pairs_rm[i].col, pairs_rm[i].row, rowIndex[rowVec[i]-1]);
       
-      }  
-    printf("\n");
+    //   }  
+    // printf("\n");
       printf("nze = %d, colVec[nze] = %d, colVec[nze] = %d\n", nze, colVec[nze-1], rowVec[nze-1]);
       // Sort vectors Column-wise
+
+      printf("preprocessing...");
       pairsort(colVec, rowVec, nze);
       printf("\n\n");
       printf("\n\n");
@@ -88,14 +91,12 @@ int main(void)
       cudaMalloc(&pairs_cm_dev, sizeof(pair)*nze);
       // unify vectors into pair array
       arraysToPairs(rowVec, colVec, nze, pairs_cm);
-      printf("hi \n");
       
-for(int i=0;i<nze;i++){
-    printf("%d. (col,row) = (%d, %d) -- col_cm index = [%d + count] \n",i, colVec[i], rowVec[i], colIndex[colVec[i]-1]);
+// for(int i=0;i<nze;i++){
+//     printf("%d. (col,row) = (%d, %d) -- col_cm index = [%d + count] \n",i, colVec[i], rowVec[i], colIndex[colVec[i]-1]);
   
-  }  
+//   }  
   
-  printf("hi \n");
 // struct pair *pairs_cm_dev, *pairs_rm_dev;
 int *colIndex_dev, *rowIndex_dev;
 
@@ -112,7 +113,6 @@ cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
 free(colVec);
 free(rowVec);
 
-printf("hi \n");
 // for(int i=0;i<nze;i++){
 //   printf("%d. pair = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
   
@@ -136,12 +136,21 @@ printf("hi \n");
   int *triangleSum_dev;
   cudaMalloc(&triangleSum_dev,sizeof(int)*blocks);
   
+  printf("\ninitiating kernel with: ");
   printf("blocks = %d, threads = %d \n",blocks,threads);
 
-  triangleSum<<<blocks,threads,sizeof(int)*threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, triangleSum_dev);
 
+  double time_start, time_end;
+  
+  time_start = get_time();
+  // printf("time_start 2 = %f \n", time_start);
+
+  triangleSum<<<blocks,threads,sizeof(int)*threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, triangleSum_dev);
+  
   checkCuda( cudaGetLastError() );
   checkCuda(cudaDeviceSynchronize());
+  time_end = get_time();
+  // printf("time_end = %f \n", time_end);
   checkCuda(cudaMemcpy(triangleSum_host, triangleSum_dev,sizeof(int)*blocks,cudaMemcpyDeviceToHost));  
   checkCuda(cudaFree(triangleSum_dev));
 
@@ -156,9 +165,10 @@ printf("hi \n");
   for(int i=0;i<nze;i++){
     quickArr[i] = pairs_cm[i].row;
   }
-  int realSum = quickSum(quickArr, nze);
+  // int realSum = quickSum(quickArr, nze);
   // int realSum = quickSum(rowIndex, N);
-  printf(" --> sum is: %d , result is: %d\n, realsum = %d \n",cudaSum*2,cudaSum/3, realSum);
+  printf(" --> sum is: %d , result is: %d\n \n",cudaSum*2,cudaSum/3);
+  printf(" time: %f\n",time_end-time_start);
   // for(int i=0;i<N;i++){
   //   printf("%d. (%d) \n",i,rowIndex[i]);
   //   // printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);

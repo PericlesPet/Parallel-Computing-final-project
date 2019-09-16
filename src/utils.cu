@@ -100,10 +100,8 @@ void separateRows(int nze,int N,int *rowVec, int *colVec, int **rowIndex){
 
 void pairsort(int a[], int b[], int n) 
 { 
-    printf("ah\n");
     struct pair *pairt = (pair *)malloc(n*sizeof(pair)); 
     
-    printf("ah\n");
     // Storing the respective array 
     // elements in pairs. 
     for (int i = 0; i < n; i++)  

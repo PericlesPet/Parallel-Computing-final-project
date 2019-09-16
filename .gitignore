@@ -16,7 +16,10 @@ src/testing.cu
 cuda-triangles-exe
 src/testing
 cudaMapReduce.cu
-
+.cproject
+.metadata/
+.project
+Debug/
 # OS Generated #
 .DS_Store*
 ehthumbs.db
