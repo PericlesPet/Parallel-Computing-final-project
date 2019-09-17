@@ -23,7 +23,7 @@ cudaError_t checkCuda(cudaError_t result)
     fprintf(stderr, "CUDA Runtime Error: %s\n", cudaGetErrorString(result));
     assert(result == cudaSuccess);
   }
-#endif
+  #endif
   return result;
 }
 
@@ -32,9 +32,14 @@ int main(void)
 {
   
   // PARAMETERS
-  int blockMultiplier = 32;
+  int blockMultiplier = 62;
   int threadMultiplier = 1;
-
+  
+  // char *filepath = "graphs/chesapeake.mtx";
+  // char *filepath = "graphs/auto.mtx";
+  // char *filepath = "graphs/great-britain_osm.mtx";
+  char *filepath = "graphs/delaunay_n22.mtx";
+  // char *filepath = "graphs/delaunay_n10.mtx";
 
   //VAR DECLARATIONS
   int *rowVec;
@@ -43,10 +48,6 @@ int main(void)
   int nze;
   int *rowIndex;
   int *colIndex;
-  // char *filepath = "graphs/chesapeake.mtx";
-  char *filepath = "graphs/auto.mtx";
-  // char *filepath = "graphs/delaunay_n10.mtx";
-  
   
   double time_start, time_end;
 
@@ -60,8 +61,6 @@ int main(void)
   // Find indeces of separate sparse rows --> assigns rowIndex array
   separateRows(nze, N, rowVec, colVec, &rowIndex);
   
-  //printf for each (row, col):
-  
   //row major pair array
   struct pair *pairs_rm;
   struct pair *pairs_rm_dev;
@@ -70,56 +69,39 @@ int main(void)
   // unify vectors into pair array
   arraysToPairs(rowVec, colVec, nze, pairs_rm);
   
-  // for(int i=0;i<nze;i++){
-  //     printf("%d. (col,row) = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
-  // }
-    // for(int i=0;i<nze;i++){
-    //     printf("%d. (col,row) = (%d, %d) , pair = (%d, %d) -- arr_rm index = [%d + count]\n",i, colVec[i], rowVec[i], pairs_rm[i].col, pairs_rm[i].row, rowIndex[rowVec[i]-1]);  
-    // }  
-    // printf("\n");
-      printf("nze = %d, colVec[nze] = %d, colVec[nze] = %d\n", nze, colVec[nze-1], rowVec[nze-1]);
-      // Sort vectors Column-wise
+  printf("nze = %d, colVec[nze] = %d, colVec[nze] = %d\n", nze, colVec[nze-1], rowVec[nze-1]);
 
-      pairsort(colVec, rowVec, nze);
-      printf("\n\n");
-      // COLUMNS
-      // Find indeces of separate sparse columns --> assigns colIndex array
-      separateRows(nze,N, colVec, rowVec, &colIndex);
-      //column major pair array
-      struct pair *pairs_cm;
-      struct pair *pairs_cm_dev;
-      cudaMallocHost(&pairs_cm,sizeof(pair)*nze);
-      cudaMalloc(&pairs_cm_dev, sizeof(pair)*nze);
-      // unify vectors into pair array
-      arraysToPairs(rowVec, colVec, nze, pairs_cm);
-      
-// for(int i=0;i<nze;i++){
-//     printf("%d. (col,row) = (%d, %d) -- col_cm index = [%d + count] \n",i, colVec[i], rowVec[i], colIndex[colVec[i]-1]);
-  
-//   }  
-  
-// struct pair *pairs_cm_dev, *pairs_rm_dev;
-int *colIndex_dev, *rowIndex_dev;
+  // Sort vectors Column-wise
+  pairsort(colVec, rowVec, nze);
+  printf("\n\n");
+  // COLUMNS
+  // Find indeces of separate sparse columns --> assigns colIndex array
+  separateRows(nze,N, colVec, rowVec, &colIndex);
+  //column major pair array
+  struct pair *pairs_cm;
+  struct pair *pairs_cm_dev;
+  cudaMallocHost(&pairs_cm,sizeof(pair)*nze);
+  cudaMalloc(&pairs_cm_dev, sizeof(pair)*nze);
+  // unify vectors into pair array
+  arraysToPairs(rowVec, colVec, nze, pairs_cm);
 
-cudaMalloc(&colIndex_dev, sizeof(int)*N);
-cudaMalloc(&rowIndex_dev, sizeof(int)*N);
+  int *colIndex_dev, *rowIndex_dev;
 
-// declare pair arrays directly for device use
-cudaMemcpy(pairs_cm_dev,pairs_cm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
-cudaMemcpy(pairs_rm_dev,pairs_rm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
-cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
-cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
+  cudaMalloc(&colIndex_dev, sizeof(int)*N);
+  cudaMalloc(&rowIndex_dev, sizeof(int)*N);
 
-// colVec & rowVec no longer needed
-free(colVec);
-free(rowVec);
+  // declare pair arrays directly for device use
+  cudaMemcpy(pairs_cm_dev,pairs_cm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
+  cudaMemcpy(pairs_rm_dev,pairs_rm, sizeof(pair)*nze,cudaMemcpyHostToDevice);
+  cudaMemcpy(colIndex_dev,colIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
+  cudaMemcpy(rowIndex_dev,rowIndex, sizeof(int)*N,cudaMemcpyHostToDevice);
 
-// for(int i=0;i<nze;i++){
-//   printf("%d. pair = (%d, %d) \n",i, pairs_rm[i].col, pairs_rm[i].row);
-  
-// }  
+  // colVec & rowVec no longer needed
+  free(colVec);
+  free(rowVec);
+
+
   // Get Device Properties 
-  // printf("checking cuda\n");
   int deviceId;
   checkCuda(cudaGetDevice(&deviceId));
   cudaDeviceProp props;
@@ -130,19 +112,12 @@ free(rowVec);
   int blocks = blockMultiplier * SMs;
   int threads = threadMultiplier * warpsize; 
 
-  // printf("blocks = %d, threads = %d \n",blocks,threads);
   
   // triangleSum array will have ceil(nze/blockDim.x) / blocks size
   int *triangleSum_host;
   cudaMallocHost(&triangleSum_host, sizeof(int)*blocks);
   int *triangleSum_dev;
   cudaMalloc(&triangleSum_dev,sizeof(int)*blocks);
-  
-  
-  
-  // create pointer to pointer for rows -> row[i][n] : i'th row, (n-1)'th element
-  
-  
   
   
   int **row_arr_pointer_device;
@@ -152,52 +127,30 @@ free(rowVec);
 
   
   int *row_arr_dev;
-  // , *row_arr_host;
   
   int rowNzeCount = 0;
   
-  // cudaMallocHost(&row_arr_pointer, sizeof(int)*N);
-  
-  // cudaMallocHost(&row_arr_host, )
   int nzeCummu = 0;
   int *nzeCummus = (int *)malloc(sizeof(int)*N);
   int *allRowsArray = (int *)malloc(sizeof(int)*(2*nze+N));
   
   for(int i=0; i<N;i++){
-    // printf("i = %d \n\n",i);
-    // allRowNze(i, &row_arr_pointer[i],&row_arr_pointer[i][0], rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
+    // if(i%100000==0){
+    //   printf("i = %d\n", i);
+    // }
     allRowNze(i, &(row_arr_pointer_host[i]),&rowNzeCount, rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
-    // allRowNze(i,&(allRowsArray)+nzeCummu,&rowNzeCount, rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
-    // allRowNze(i,&allRowsArray[nzeCummu],&rowNzeCount, rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
     
-    cudaMalloc(&row_arr_dev, sizeof(int)*rowNzeCount);
+    // cudaMalloc(&row_arr_dev, sizeof(int)*rowNzeCount);
     
     nzeCummus[i] = nzeCummu;
-    
-    // &(allRowsArray+nzeCummu) 
-    
     nzeCummu += rowNzeCount+1;
     
     allRowsArray[nzeCummus[i]] = row_arr_pointer_host[i][0];
-    // printf("Row %d : %d [", i, allRowsArray[nzeCummus[i]]);
     
     for(int j= 1 ;j<=rowNzeCount;j++){
       // printf(" %d" ,row_arr_pointer_host[i][j]);
       allRowsArray[j + nzeCummus[i]] = row_arr_pointer_host[i][j];
-      // printf( " %d" ,allRowsArray[ j + nzeCummus[i] ] );
     }
-    // printf(" ]\n");
-    
-    
-    
-    // // cudaMemcpy(&row_arr_dev, &row_arr_pointer_host[i], sizeof(int)*rowNzeCount, cudaMemcpyHostToDevice);
-    
-    // cudaMemcpy(&row_arr_pointer_device[i], &row_arr_pointer_host[i], sizeof(int)*rowNzeCount, cudaMemcpyHostToDevice);
-    // checkCuda(cudaMalloc(&row_arr_pointer_device[i], rowNzeCount*sizeof(int)));
-    // checkCuda(cudaMemcpy(row_arr_pointer_device[i], row_arr_pointer_host[i], sizeof(int)*rowNzeCount, cudaMemcpyHostToDevice));
-    
-    // // cudaMalloc(&(row_arr_pointer_device[i]), sizeof(int)*rowNzeCount);
-    // // cudaMemcpy(&row_arr_pointer_device[i],&row_arr_host,sizeof(int) )
   }  
 
   int *nzeCummus_dev;
