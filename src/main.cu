@@ -43,9 +43,9 @@ int main(void)
   int nze;
   int *rowIndex;
   int *colIndex;
-  char *filepath = "graphs/chesapeake.mtx";
+  // char *filepath = "graphs/chesapeake.mtx";
   // char *filepath = "graphs/auto.mtx";
-  // char *filepath = "graphs/delaunay_n10.mtx";
+  char *filepath = "graphs/delaunay_n10.mtx";
   
   
   // READ SPARSE MATRIX FROM FILE
@@ -117,10 +117,11 @@ free(rowVec);
   
 // }  
   // Get Device Properties 
+  printf("checking cuda\n");
   int deviceId;
-  cudaGetDevice(&deviceId);
+  checkCuda(cudaGetDevice(&deviceId));
   cudaDeviceProp props;
-  cudaGetDeviceProperties(&props, deviceId);
+  checkCuda(cudaGetDeviceProperties(&props, deviceId));
   int warpsize = props.warpSize;         // Warp Size
   int SMs = props.multiProcessorCount;  //Streaming Multiprocessors
 
@@ -136,15 +137,93 @@ free(rowVec);
   cudaMalloc(&triangleSum_dev,sizeof(int)*blocks);
   
   printf("\ninitiating kernel with: ");
+  
+  
+  // create pointer to pointer for rows -> row[i][n] : i'th row, (n-1)'th element
+  
+  
+  
+  
+  int **row_arr_pointer_device;
+  int **row_arr_pointer_host = (int **)malloc(sizeof(int*)*N);
+  
+  checkCuda(cudaMalloc(&row_arr_pointer_device, sizeof(int)*N));
+
+  
+  int *row_arr_dev;
+  // , *row_arr_host;
+  
+  int rowNzeCount = 0;
+  
+  // cudaMallocHost(&row_arr_pointer, sizeof(int)*N);
+  
+  // cudaMallocHost(&row_arr_host, )
+  printf("N = %d \n",N);
+  int nzeCummu = 0;
+  int *nzeCummus = (int *)malloc(sizeof(int)*N);
+  int *allRowsArray = (int *)malloc(sizeof(int)*(2*nze+N));
+  
   printf("blocks = %d, threads = %d \n",blocks,threads);
+  for(int i=0; i<N;i++){
+    // printf("i = %d \n\n",i);
+    // allRowNze(i, &row_arr_pointer[i],&row_arr_pointer[i][0], rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
+    allRowNze(i, &(row_arr_pointer_host[i]),&rowNzeCount, rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
+    // allRowNze(i,&(allRowsArray)+nzeCummu,&rowNzeCount, rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
+    // allRowNze(i,&allRowsArray[nzeCummu],&rowNzeCount, rowIndex, colIndex, pairs_cm, pairs_rm, nze, N);
+    
+    cudaMalloc(&row_arr_dev, sizeof(int)*rowNzeCount);
+    
+    nzeCummus[i] = nzeCummu;
+    
+    // &(allRowsArray+nzeCummu) 
+    
+    nzeCummu += rowNzeCount+1;
+    
+    allRowsArray[nzeCummus[i]] = row_arr_pointer_host[i][0];
+    // printf("Row %d : %d [", i, allRowsArray[nzeCummus[i]]);
+    
+    for(int j= 1 ;j<=rowNzeCount;j++){
+      // printf(" %d" ,row_arr_pointer_host[i][j]);
+      allRowsArray[j + nzeCummus[i]] = row_arr_pointer_host[i][j];
+      // printf( " %d" ,allRowsArray[ j + nzeCummus[i] ] );
+    }
+    // printf(" ]\n");
+    
+    
+    
+    // // cudaMemcpy(&row_arr_dev, &row_arr_pointer_host[i], sizeof(int)*rowNzeCount, cudaMemcpyHostToDevice);
+    
+    // cudaMemcpy(&row_arr_pointer_device[i], &row_arr_pointer_host[i], sizeof(int)*rowNzeCount, cudaMemcpyHostToDevice);
+    // checkCuda(cudaMalloc(&row_arr_pointer_device[i], rowNzeCount*sizeof(int)));
+    // checkCuda(cudaMemcpy(row_arr_pointer_device[i], row_arr_pointer_host[i], sizeof(int)*rowNzeCount, cudaMemcpyHostToDevice));
+    
+    // // cudaMalloc(&(row_arr_pointer_device[i]), sizeof(int)*rowNzeCount);
+    // // cudaMemcpy(&row_arr_pointer_device[i],&row_arr_host,sizeof(int) )
+  }  
+
+  int *nzeCummus_dev;
+  checkCuda(cudaMalloc(&nzeCummus_dev, sizeof(int)*N));
+  int *allRowsArray_dev;
+  checkCuda(cudaMalloc(&allRowsArray_dev, sizeof(int)*(2*nze+N)));
+
+  printf(" comparison: nze+N = %d, nzeCummu = %d \n", 2*nze+N, nzeCummu);
+  
+  checkCuda(cudaMemcpy(nzeCummus_dev, nzeCummus, sizeof(int)*N, cudaMemcpyHostToDevice));
+  checkCuda(cudaMemcpy(allRowsArray_dev, allRowsArray, sizeof(int)*(2*nze+N), cudaMemcpyHostToDevice));
+  
+
+  
+  
 
 
   double time_start, time_end;
   
   time_start = get_time();
-  // printf("time_start 2 = %f \n", time_start);
+  printf("time_start 2 = %f \n", time_start);
 
-  triangleSum<<<blocks,threads,sizeof(int)*threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, triangleSum_dev);
+  // triangleSum<<<blocks,threads,sizeof(int)*threads>>>(rowIndex_dev, colIndex_dev, pairs_cm_dev, pairs_rm_dev, nze, N, triangleSum_dev);
+  // triangleSum<<<blocks,threads,sizeof(int)*threads>>>(row_arr_pointer_device, pairs_rm_dev, nze, N, triangleSum_dev);
+  triangleSum<<<blocks,threads,sizeof(int)*threads>>>(allRowsArray_dev, nzeCummus_dev, pairs_rm_dev, nze, N, triangleSum_dev);
   
   checkCuda( cudaGetLastError() );
   checkCuda(cudaDeviceSynchronize());
