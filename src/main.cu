@@ -249,7 +249,7 @@ free(rowVec);
   // int realSum = quickSum(quickArr, nze);
   // int realSum = quickSum(rowIndex, N);
   printf("--> Result is: %d\n \n",cudaSum/3);
-  printf(" time: %f\n",time_end-time_start);
+  printf(" time: %f seconds\n",time_end-time_start);
   // for(int i=0;i<N;i++){
   //   printf("%d. (%d) \n",i,rowIndex[i]);
   //   // printf("%d. (%d , %d) \n\n",i,pairs_cm[i].col,pairs_cm[i].row);
