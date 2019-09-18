@@ -32,13 +32,13 @@ int main(void)
 {
   
   // PARAMETERS
-  int blockMultiplier = 62;
-  int threadMultiplier = 1;
+  int blockMultiplier = 32;
+  int threadMultiplier = 2;
   
   // char *filepath = "graphs/chesapeake.mtx";
-  // char *filepath = "graphs/auto.mtx";
+  char *filepath = "graphs/auto.mtx";
   // char *filepath = "graphs/great-britain_osm.mtx";
-  char *filepath = "graphs/delaunay_n22.mtx";
+  // char *filepath = "graphs/delaunay_n22.mtx";
   // char *filepath = "graphs/delaunay_n10.mtx";
 
   //VAR DECLARATIONS

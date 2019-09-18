@@ -14,7 +14,7 @@ LDFLAGS= -Xcompiler -fPIC -Xcompiler -lm
 COMMON= -Iinclude/ -Isrc/
 
 CC=nvcc
-CFLAGS = -arch=sm_50
+CFLAGS = -arch=sm_50 -O3
 
 ifeq ($(DEBUG), 1)
 OPTS=-O0 -g
